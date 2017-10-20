@@ -1,5 +1,7 @@
 ## A simple Ansible playbook for use on OSX
 
+### Run using: ansible-playbook cobbler.yml -i inventory/hosts --ask-become-pass
+
 **Can be tailored for your OS of choice if necessary by adjusting the "flash" role.**
 
 This playbook will allow you to perform the following steps:
