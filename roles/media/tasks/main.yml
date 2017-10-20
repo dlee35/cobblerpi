@@ -39,7 +39,7 @@
 - name: Importing CentOS image into cobbler (time for another cup of coffee, perhaps?)
   shell: "cobbler import --name=centos7 --arch=x86_64 --breed=redhat --os-version=rhel7 --path=/mnt"
 
-- name: Mount CentOS image RO on /mnt
+- name: Unmount CentOS image from /mnt
   mount:
     path: /mnt
     src: '/media/{{ iso }}'
