@@ -1,0 +1,51 @@
+---
+# The ssh key you want to use on the RasPi
+ssh_private_key: "~/.ssh/id_rsa"
+
+# CentOS image you want to burn to the RasPi
+iso_image: "files/CentOS..."
+
+# IP address for the RasPi
+cobbler_ip: 10.0.0.2 
+
+# Network prefix
+net_prefix: 16 
+
+# Gateway IP for the network
+gw_ip: 10.0.0.1 
+
+# DNS server for the network
+dns_ip: 10.0.0.1 
+
+# DHCP range Cobbler will issue addresses for
+dhcp_range: 10.0.0.100,10.0.0.150
+
+# Default password for the cobbler instance
+# MUST BE DEFINED!!
+# Use 'openssl passwd -1' to generate
+default_password_crypted: ""
+
+# Nonroot user to add to the RasPi
+# Change to suit your desires
+user: user
+
+# Location of syslinux rpm (local or download)
+# Either ensure this file exists locally or leave syslinux_local blank
+syslinux_local: ""
+syslinux_url: "ftp://ftp.icm.edu.pl/vol/rzm6/linux-centos-vault/7.0.1406/os/x86_64/Packages/syslinux-4.05-8.el7.x86_64.rpm"
+
+# Location of CentOS iso (local or download)
+# Either ensure this file exists locally or leave iso_local blank
+iso_local: ""
+iso_url: "http://mirror.fileplanet.com/centos/7/isos/x86_64/CentOS-7-x86_64-DVD-1708.iso"
+
+# Packages required for cobbler and a few others for my sanity
+common_packages:
+  - vim
+  - bash-completion
+  - python-pip
+  - dnsmasq
+  - rsync
+  - pykickstart
+  - cobbler
+  - cobbler-web

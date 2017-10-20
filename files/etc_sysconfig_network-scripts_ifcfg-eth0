@@ -1,0 +1,15 @@
+TYPE=Ethernet
+BOOTPROTO=none
+NM_CONTROLLED="yes"
+DEFROUTE=yes
+NAME=eth0
+UUID={{ uuid_gen }}
+ONBOOT=yes
+PROXY_METHOD=none
+BROWSER_ONLY=no
+IPADDR={{ cobbler_ip }}
+PREFIX={{ net_prefix }}
+GATEWAY={{ gw_ip }}
+DNS1={{ dns_ip }}
+IPV4_FAILURE_FATAL=no
+IPV6INIT=no

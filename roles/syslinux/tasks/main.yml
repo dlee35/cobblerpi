@@ -1,0 +1,26 @@
+---
+- name: Defining syslinux variable
+  set_fact:
+    syslinux: '{{ syslinux_url.split("/")[-1] }}'
+
+- name: Syncronizing local syslinux rpm
+  get_url:
+    url: '{{ syslinux_local }}'
+    dest: '/opt/{{ syslinux }}'
+    mode: 0644
+  when: syslinux_local is defined
+
+- name: Downloading syslinux rpm
+  get_url:
+    url: '{{ syslinux_url }}'
+    dest: '/opt/{{ syslinux }}'
+    mode: 0644
+  when: syslinux_local is not defined
+
+- name: Installing syslinux package
+  shell: "rpm -vi --nodeps --ignorearch /opt/{{ syslinux }}"
+
+- name: Removing syslinux rpm from /opt
+  file:
+    path: '/opt/{{ syslinux }}'
+    state: absent

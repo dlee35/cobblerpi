@@ -1,0 +1,34 @@
+---
+- name: Expanding filesystem
+  shell: '/bin/rootfs-expand'
+  register: diff_cmd
+  failed_when: diff_cmd.rc >= 2
+
+- name: Adding '{{ user }}' account
+  user:
+    name: '{{ user }}'
+    shell: /bin/bash
+    groups: wheel
+    append: yes
+
+- name: Upgrading all packages to update epel-repo
+  yum:
+    name: '*'
+    state: latest
+
+- name: Installing common packages
+  yum:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - '{{ common_packages }}'
+
+- selinux:
+    policy: targeted
+    state: permissive
+
+- name: Disabling firewalld... living dangerously
+  systemd:
+    name: firewalld
+    state: stopped
+    enabled: false

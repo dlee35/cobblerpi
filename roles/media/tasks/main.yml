@@ -1,0 +1,48 @@
+---
+- name: Updating cobbler signatures
+  shell: "cobbler signature update"
+
+- name: Running cobbler sync
+  shell: "cobbler sync"
+
+- name: Defining iso variable
+  set_fact:
+    iso: '{{ iso_url.split("/")[-1] }}'
+
+- name: Creating media directory
+  file:
+    path: /media
+    state: directory
+    mode: 0755
+
+- name: Synchronizing local CentOS iso (this will take a bit... it's best to grab some coffee)
+  synchronize:
+    src: '{{ iso_local }}'
+    dest: '/media/{{ iso }}'
+  when: iso_local is defined
+
+- name: Downloading CentOS iso (this will take a bit... it's best to grab some coffee)
+  get_url:
+    url: '{{ iso_url }}'
+    dest: '/media/{{ iso }}'
+    mode: 0644
+  when: iso_local is not defined
+
+- name: Mount CentOS image RO on /mnt
+  mount:
+    path: /mnt
+    src: '/media/{{ iso }}'
+    fstype: iso9660
+    opts: loop,ro
+    state: mounted
+
+- name: Importing CentOS image into cobbler (time for another cup of coffee, perhaps?)
+  shell: "cobbler import --name=centos7 --arch=x86_64 --breed=redhat --os-version=rhel7 --path=/mnt"
+
+- name: Mount CentOS image RO on /mnt
+  mount:
+    path: /mnt
+    src: '/media/{{ iso }}'
+    fstype: iso9660
+    opts: loop,ro
+    state: unmounted

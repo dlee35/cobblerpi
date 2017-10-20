@@ -1,0 +1,39 @@
+---
+- hosts: localhost
+  gather_facts: false
+  connection: local
+  become: true
+
+  vars_files:
+    - group_vars/all
+
+  pre_tasks:
+  - name: Checking for disk
+    shell: "diskutil list | grep --color=never FDisk_partition_scheme | awk 'NF>1{print $NF}'"
+    register: disk
+
+  - name: Generating UUID for eth0
+    shell: "python  -c 'import uuid; print uuid.uuid1()'"
+    register: uuid
+
+  - name: "Get the {{ ssh_private_key }}.pub contents"
+    command: "cat {{ ssh_private_key }}.pub"
+    register: ssh_key
+    changed_when: False
+
+  roles:
+  - flash
+ 
+- hosts: cobbler
+  gather_facts: true
+  connection: ssh
+  become: false
+
+  vars_files:
+    - group_vars/all
+
+  roles:
+  - common
+  - syslinux 
+  - cobbler
+  - media

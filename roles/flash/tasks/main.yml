@@ -1,0 +1,105 @@
+---
+- block:
+  - name: Setting disk fact
+    set_fact:
+      flash_disk: '{{ disk.stdout }}'
+    when: disk.stdout is defined
+
+  - name: Setting uuid fact
+    set_fact:
+      uuid_gen: '{{ uuid.stdout }}'
+    when: uuid.stdout is defined
+
+  - pause:
+      prompt: |
+
+        This process takes approximately 30 minutes to complete. Please be patient...
+
+        Preparing to flash /dev/{{ flash_disk }}. Is this correct?
+        Press Ctrl+C to continue
+
+  - name: Unmounting /dev/{{ flash_disk }}
+    shell: 'diskutil unmountDisk /dev/{{ flash_disk }}s1 && diskutil unmountDisk /dev/{{ flash_disk }}'
+
+  - name: Checking to make certain /dev/{{ flash_disk }} isn't read-only
+    shell: "diskutil info /dev/{{ flash_disk }} | grep 'Read-Only Media' | awk 'NF>1{print $NF}'"
+    register: readonly
+
+  - block:
+    - name: Imaging /dev/{{ flash_disk }} (this may take a bit...)
+      shell: '/bin/dd bs=1m if={{iso_image}} of=/dev/r{{ flash_disk }}'
+
+    - name: Create a temporary mount directory
+      tempfile:
+        state: directory
+        suffix: tmpmnt
+
+    - name: Mounting /dev/{{ flash_disk }}s3 to transfer necessary files
+      shell: 'fuse-ext2 /dev/{{ flash_disk }}s3 tmpmnt -o force'
+
+    - name: Copying eth0 template to /dev/{{ flash_disk }}s3
+      template:
+        src: files/etc_sysconfig_network-scripts_ifcfg-eth0 
+        dest: tmpmnt/etc/sysconfig/network-scripts/ifcfg-eth0
+        owner: root
+        group: wheel
+        mode: '0644'
+
+    - name: Copying epel-repo template to /dev/{{ flash_disk }}s3
+      template:
+        src: files/etc_yum.repos.d_epel-unsigned.repo
+        dest: tmpmnt/etc/yum.repos.d/epel-unsigned.repo
+        owner: root
+        group: wheel
+        mode: '0644'
+
+    - name: Creating /root/.ssh directory
+      file:
+        path: tmpmnt/root/.ssh
+        state: directory
+        owner: root
+        group: wheel
+        mode: 0740
+
+    - name: Copying ssh_key material to /root/.ssh/authorized_keys
+      copy:
+        content: '{{ ssh_key.stdout }}'
+        dest: tmpmnt/root/.ssh/authorized_keys
+        owner: root
+        group: wheel
+        mode: 0644
+
+    - name: Creating /media directory
+      file:
+        path: tmpmnt/media
+        state: directory
+        owner: root
+        group: wheel
+        mode: 0755
+
+    - name: Unmounting /dev/{{ flash_disk }}s3 and deleting temporary mount directory
+      shell: 'umount tmpmnt && rmdir tmpmnt'
+
+    - name: Unmounting /dev/{{ flash_disk }}
+      shell: 'diskutil Eject /dev/{{ flash_disk }}'
+
+    when: readonly.stdout == 'No'
+
+  - pause:
+      prompt: |
+        Please transfer the media card to the RPi and ensure it successfully powered on...
+        Wait a bit for it to finish booting...
+
+        Press Ctrl+C to continue
+  
+  - name: Waiting for SSH to respond
+    wait_for:
+      host: '{{ cobbler_ip }}'
+      port: 22
+      delay: 60
+      timeout: 320
+      state: started
+
+  when: 
+    - disk.stdout != ''
+    - iso_image is defined

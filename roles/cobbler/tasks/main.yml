@@ -1,0 +1,42 @@
+---
+- name: Copying settings to cobbler directory
+  template:
+    src: files/etc_cobbler_settings 
+    dest: /etc/cobbler/settings
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copying modules.conf to cobbler directory
+  template:
+    src: files/etc_cobbler_modules.conf
+    dest: /etc/cobbler/modules.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copying dnsmasq.template to cobbler directory
+  template:
+    src: files/etc_cobbler_dnsmasq.template
+    dest: /etc/cobbler/dnsmasq.template
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Enabling rsyncd service via systemctl
+  systemd:
+    name: rsyncd
+    state: started
+    enabled: true
+
+- name: Enabling httpd service via systemctl
+  systemd:
+    name: httpd
+    state: started
+    enabled: true
+
+- name: Enabling cobblerd service via systemctl
+  systemd:
+    name: cobblerd
+    state: started
+    enabled: true
