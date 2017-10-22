@@ -29,6 +29,12 @@
     state: started
     enabled: true
 
+- name: Enabling tftp service via systemctl
+  systemd:
+    name: tftp
+    state: started
+    enabled: true
+
 - name: Enabling httpd service via systemctl
   systemd:
     name: httpd
